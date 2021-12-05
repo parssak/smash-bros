@@ -66,7 +66,6 @@ public class TrackTargets : MonoBehaviour {
     float ratio = area / 12f / max;
     float baseZ = -25f;
     float zAxis = Mathf.Clamp(baseZ * ratio, -39f, -9f);
-    Debug.Log("Ratio" + ratio);
     Vector3 cameraTarget = new Vector3(boundingBoxCenter.x, boundingBoxCenter.y, zAxis);
     return Vector3.Lerp(GetComponent<Camera>().transform.position, cameraTarget, Time.deltaTime * zoomSpeed);
   }
@@ -96,7 +95,4 @@ public class TrackTargets : MonoBehaviour {
     Gizmos.color = Color.grey;
     Gizmos.DrawWireCube(boundingBox.center, boundingBox.size);
   }
-
-  
-    
 }
