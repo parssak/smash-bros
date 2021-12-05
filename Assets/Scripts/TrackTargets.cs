@@ -15,16 +15,20 @@ public class TrackTargets : MonoBehaviour {
 
   const float MAX_TRACK_DISTANCE = 30f;
 
+  float minimumOrthographicSize = 10f;
+  float maximumOrthographicSize = 9f;
+  float currentOrthographicSize = 10f;
+
   void Awake()
   {
     camera = GetComponent<Camera>();
   }
 
+
   void LateUpdate()
   {
     Rect boundingBox = CalculateTargetsBoundingBox();
     transform.position = CalculateCameraPosition(boundingBox);
-    Debug.Log(boundingBox);
   }
 
   Rect CalculateTargetsBoundingBox()
@@ -60,9 +64,40 @@ public class TrackTargets : MonoBehaviour {
   Vector3 CalculateCameraPosition(Rect boundingBox)
   {
     Vector2 boundingBoxCenter = boundingBox.center;
-    float zAxis = transform.position.z;
+    float area = Mathf.Abs(boundingBox.width * boundingBox.height);
+    float max = 100f;
+    float ratio = area / 12f / max;
+    float baseZ = -25f;
+    float zAxis = Mathf.Clamp(baseZ * ratio, -39f, -9f);
+    Debug.Log("Ratio" + ratio);
     Vector3 cameraTarget = new Vector3(boundingBoxCenter.x, boundingBoxCenter.y, zAxis);
     return Vector3.Lerp(GetComponent<Camera>().transform.position, cameraTarget, Time.deltaTime * zoomSpeed);
+  }
+
+  float CalculateOrthographicSize(Rect boundingBox)
+  {
+    float orthographicSize = currentOrthographicSize;
+    Vector3 topRight = new Vector3(boundingBox.x + boundingBox.width, boundingBox.y, 0f);
+    Vector3 topRightAsViewport = GetComponent<Camera>().WorldToViewportPoint(topRight);
+
+    if (topRightAsViewport.x >= topRightAsViewport.y)
+      orthographicSize = Mathf.Abs(boundingBox.width) / GetComponent<Camera>().aspect / 2f;
+    else
+      orthographicSize = Mathf.Abs(boundingBox.height) / 2f;
+
+    return Mathf.Clamp(Mathf.Lerp(currentOrthographicSize, orthographicSize, Time.deltaTime * zoomSpeed), minimumOrthographicSize, maximumOrthographicSize);
+  }
+
+  void OnDrawGizmos()
+  {
+    if (targets == null || targets.Length == 0)
+    {
+      return;
+    }
+
+    Rect boundingBox = CalculateTargetsBoundingBox();
+    Gizmos.color = Color.grey;
+    Gizmos.DrawWireCube(boundingBox.center, boundingBox.size);
   }
 
   
