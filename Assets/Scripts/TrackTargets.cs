@@ -43,9 +43,6 @@ public class TrackTargets : MonoBehaviour {
       Vector3 position = target.position;
       Player player = target.GetComponent<Player>();
       
-      if (player && player.isDead) {
-        position = Vector3.zero;
-      }
       
       if (Vector3.Distance(Vector3.zero, position) > MAX_TRACK_DISTANCE)
       {
