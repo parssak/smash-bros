@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
+    public bool isDead = false;
     public CharacterController controller;
     public float speed = 6.0f;
     public float gravity = -600.0f;
@@ -13,8 +14,9 @@ public class Player : MonoBehaviour
     private bool isJumping = false;
     private int jumpCount = 0;
 
-    private Vector3 spawnPoint = new Vector3(0, 30, 0);
+    private Vector3 spawnPoint = new Vector3(0, 20, 0);
     private float deathDistance = 100f;
+    private float lastDeathTime = 0f;
     
     void Start()
     {
@@ -23,11 +25,17 @@ public class Player : MonoBehaviour
 
     void Update() {
         Vector3 moveDirection = ReceiveInput();
+
+        if (isDead) {
+            return;
+        }
+        
         if (controller.isGrounded) {
             jumpCount = 0;
+
         }
         // check if distance from spawnPoint is greater than deathDistance
-        if (Vector3.Distance(spawnPoint, transform.position) > deathDistance) {
+        if (Vector3.Distance(spawnPoint, transform.position) > deathDistance && !isDead && lastDeathTime + 5f < Time.time) {
             Die();
             return;
         }
@@ -35,8 +43,18 @@ public class Player : MonoBehaviour
     }
 
     void Die() {
-        Debug.Log("Died");
-        transform.position = spawnPoint;
+        Debug.Log("died");
+        StartCoroutine(Respawn());
+    }
+
+    IEnumerator Respawn() {
+        isDead = true;
+        lastDeathTime = Time.time;
+        while (Time.time < lastDeathTime + 2f) {
+            transform.position = spawnPoint;
+            yield return null;
+        }
+        isDead = false;
     }
 
     Vector3 ReceiveInput() {
@@ -50,13 +68,12 @@ public class Player : MonoBehaviour
 
     bool CanJump() {
         return jumpCount < 2;
-
     }
 
     void HandleMovement(Vector3 moveDirection) {
         if (moveDirection.y > 0.0f) {
             if (CanJump()) HandleJump();
-            // else if (!isJumping) Gap(CanJump, HandleJump, 0.1f);
+            else if (!isJumping) Gap(CanJump, HandleJump, 0.1f);
         }
         if (!isJumping) {
             moveDirection.y += gravity;
