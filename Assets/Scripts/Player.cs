@@ -21,25 +21,23 @@ public class Player : MonoBehaviour
     void Start()
     {
         controller = GetComponent<CharacterController>();
-    
     }
 
     void Update() {
-        Vector3 moveDirection = ReceiveInput();
-
         if (isDead) {
             return;
         }
         
-        if (controller.isGrounded) {
-            jumpCount = 0;
-
-        }
-        // check if distance from spawnPoint is greater than deathDistance
         if (Vector3.Distance(spawnPoint, transform.position) > deathDistance && !isDead && lastDeathTime + 5f < Time.time) {
             Die();
             return;
         }
+
+        if (controller.isGrounded) {
+            jumpCount = 0;
+        }
+        
+        Vector3 moveDirection = ReceiveInput();
         HandleMovement(moveDirection);
     }
 
@@ -60,7 +58,7 @@ public class Player : MonoBehaviour
 
     Vector3 ReceiveInput() {
         Vector3 moveDirection = Vector3.zero;
-        moveDirection.x = Input.GetAxis("Horizontal") * speed;
+        moveDirection.x = Input.GetAxis("Horizontal");
         if (Input.GetButtonDown("Jump") || Input.GetButtonDown("Vertical"))  {
             moveDirection.y = 1;
         }
@@ -82,6 +80,16 @@ public class Player : MonoBehaviour
         if (controller.isGrounded) {
             moveDirection.y = 0;
         }
+        if (moveDirection.x > 0) {
+            transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(0, -45, 0), Time.deltaTime * speed);
+        }
+        else if (moveDirection.x < 0) {
+            transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(0, 45, 0), Time.deltaTime * speed);
+        } else {
+            transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(0, 0, 0), Time.deltaTime);
+        }
+        
+        moveDirection.x *= speed;
         controller.Move(moveDirection * Time.deltaTime);
     }
 
